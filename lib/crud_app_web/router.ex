@@ -18,6 +18,9 @@ defmodule CrudAppWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    resources "/authors", AuthorController
+    resources "/books", BookController
   end
 
   # Other scopes may use custom stacks.
