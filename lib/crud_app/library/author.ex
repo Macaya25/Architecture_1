@@ -8,6 +8,8 @@ defmodule CrudApp.Library.Author do
     field :description, :string
     field :name, :string
 
+    has_many :books, CrudApp.Library.Book
+
     timestamps(type: :utc_datetime)
   end
 

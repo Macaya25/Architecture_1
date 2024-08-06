@@ -5,7 +5,8 @@ defmodule CrudApp.Library.Sale do
   schema "sales" do
     field :year, :integer
     field :total_sales, :integer
-    field :book_id, :id
+
+    belongs_to :book, CrudApp.Library.Book
 
     timestamps(type: :utc_datetime)
   end
@@ -13,7 +14,7 @@ defmodule CrudApp.Library.Sale do
   @doc false
   def changeset(sale, attrs) do
     sale
-    |> cast(attrs, [:year, :total_sales])
-    |> validate_required([:year, :total_sales])
+    |> cast(attrs, [:year, :total_sales, :book_id])
+    |> validate_required([:year, :total_sales, :book_id])
   end
 end

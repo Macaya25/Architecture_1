@@ -7,19 +7,37 @@
   </:actions>
 </.header>
 
-<.table id="authors" rows={@authors} row_click={&JS.navigate(~p"/authors/#{&1}")}>
-  <:col :let={author} label="Name"><%= author.name %></:col>
-  <:col :let={author} label="Date of birth"><%= author.date_of_birth %></:col>
-  <:col :let={author} label="Country of origin"><%= author.country_of_origin %></:col>
-  <:col :let={author} label="Description"><%= author.description %></:col>
-  <:action :let={author}>
+<form method="get" action={~p"/authors"}>
+  <input type="text" name="name_filter" placeholder="Filter by name" value={@name_filter}>
+  <input type="number" name="min_books" placeholder="Min Books" value={@min_books}>
+  <button type="submit">Filter</button>
+</form>
+
+<.table id="authors" rows={@authors_with_stats}>
+  <:col :let={author_stat} label="Name">
+    <.link href={~p"/authors?sort=name"}></.link>
+    <%= author_stat.author.name %>
+  </:col>
+  <:col :let={author_stat} label="Books Published">
+    <.link href={~p"/authors?sort=books_published"}></.link>
+    <%= author_stat.book_count %>
+  </:col>
+  <:col :let={author_stat} label="Average Rating">
+    <.link href={~p"/authors?sort=avg_rating"}></.link>
+    <%= author_stat.avg_rating %>
+  </:col>
+  <:col :let={author_stat} label="Total Sales">
+    <.link href={~p"/authors?sort=total_sales"}></.link>
+    <%= author_stat.total_sales %>
+  </:col>
+  <:action :let={author_stat}>
     <div class="sr-only">
-      <.link navigate={~p"/authors/#{author}"}>Show</.link>
+      <.link navigate={~p"/authors/#{author_stat.author.id}"}>Show</.link>
     </div>
-    <.link navigate={~p"/authors/#{author}/edit"}>Edit</.link>
+    <.link navigate={~p"/authors/#{author_stat.author.id}/edit"}>Edit</.link>
   </:action>
-  <:action :let={author}>
-    <.link href={~p"/authors/#{author}"} method="delete" data-confirm="Are you sure?">
+  <:action :let={author_stat}>
+    <.link href={~p"/authors/#{author_stat.author.id}"} method="delete" data-confirm="Are you sure?">
       Delete
     </.link>
   </:action>

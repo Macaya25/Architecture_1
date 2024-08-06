@@ -15,7 +15,12 @@ Faker.start()
 alias CrudApp.Repo
 alias CrudApp.Library.{Author, Book, Review, Sale}
 
-excluded_fields = [:__meta__, :__struct__, :id]
+Repo.delete_all(Sale)
+Repo.delete_all(Review)
+Repo.delete_all(Book)
+Repo.delete_all(Author)
+
+excluded_fields = [:__meta__, :__struct__, :id, :books, :author, :reviews, :sales, :book]
 
 current_time = DateTime.utc_now() |> DateTime.truncate(:second)
 
@@ -36,27 +41,29 @@ end
 
 Repo.insert_all(Author, authors)
 
-books = for author <- Repo.all(Author) do
-  for _ <- 1..6 do  # Aproximadamente 6 libros por autor para llegar a 300 libros
-    %Book{}
-    |> Book.changeset(%{
-      name: Faker.Lorem.sentence(),  # Alternativa a Faker.Book.title()
-      summary: Faker.Lorem.paragraphs(1..3) |> Enum.join(" "),
-      date_of_publication: Faker.Date.backward(1000),
-      number_of_sales: Enum.random(0..10000),
-      author_id: author.id
-    })
-    |> Ecto.Changeset.apply_changes()
-    |> Map.from_struct()
-    |> Map.drop(excluded_fields)
-    |> Map.put(:inserted_at, current_time)
-    |> Map.put(:updated_at, current_time)
-  end
+authors = Repo.all(Author)
+
+books = for author <- authors, _ <- 1..6 do
+  %Book{}
+  |> Book.changeset(%{
+    name: Faker.Lorem.sentence(),
+    summary: Faker.Lorem.paragraphs(1..3) |> Enum.join(" "),
+    date_of_publication: Faker.Date.backward(1000),
+    number_of_sales: Enum.random(0..10000),
+    author_id: author.id
+  })
+  |> Ecto.Changeset.apply_changes()
+  |> Map.from_struct()
+  |> Map.drop(excluded_fields)
+  |> Map.put(:inserted_at, current_time)
+  |> Map.put(:updated_at, current_time)
 end |> List.flatten()
 
 Repo.insert_all(Book, books)
 
-for book <- Repo.all(Book) do
+books = Repo.all(Book)
+
+for book <- books do
   reviews = for _ <- 1..10 do
     %Review{}
     |> Review.changeset(%{
@@ -74,8 +81,8 @@ for book <- Repo.all(Book) do
   Repo.insert_all(Review, reviews)
 end
 
-for book <- Repo.all(Book) do
-  sales = for year <- Enum.to_list(Date.utc_today().year - 5..Date.utc_today().year) do
+for book <- books do
+  sales = for year <- (Date.utc_today().year - 5)..Date.utc_today().year do
     %Sale{}
     |> Sale.changeset(%{
       book_id: book.id,
