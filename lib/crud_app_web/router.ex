@@ -21,6 +21,8 @@ defmodule CrudAppWeb.Router do
 
     resources "/authors", AuthorController
     resources "/books", BookController
+    resources "/reviews", ReviewController
+    resources "/sales", SaleController
   end
 
   # Other scopes may use custom stacks.
