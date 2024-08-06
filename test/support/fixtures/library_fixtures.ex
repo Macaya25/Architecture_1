@@ -37,4 +37,35 @@ defmodule CrudApp.LibraryFixtures do
 
     book
   end
+
+  @doc """
+  Generate a review.
+  """
+  def review_fixture(attrs \\ %{}) do
+    {:ok, review} =
+      attrs
+      |> Enum.into(%{
+        rating: 42,
+        review: "some review",
+        upvotes: 42
+      })
+      |> CrudApp.Library.create_review()
+
+    review
+  end
+
+  @doc """
+  Generate a sale.
+  """
+  def sale_fixture(attrs \\ %{}) do
+    {:ok, sale} =
+      attrs
+      |> Enum.into(%{
+        total_sales: 42,
+        year: 42
+      })
+      |> CrudApp.Library.create_sale()
+
+    sale
+  end
 end
