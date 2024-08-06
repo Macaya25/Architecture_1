@@ -390,7 +390,7 @@ defmodule CrudApp.Library do
     Sale.changeset(sale, attrs)
   end
 
-  def list_authors_with_stats(sort \\ "name", name_filter \\ nil, min_books \\ 0) do
+  def list_authors_with_stats(sort \\ "name", name_filter \\ nil, min_books \\ 0, min_avg_rating \\ Decimal.new("0.0"), min_total_sales \\ 0) do
     sort_field = case sort do
       "name" -> :name
       "books_published" -> :book_count
@@ -405,7 +405,9 @@ defmodule CrudApp.Library do
         left_join: r in assoc(b, :reviews),
         left_join: s in assoc(b, :sales),
         group_by: a.id,
-        having: count(b.id) >= ^min_books,
+        having: count(b.id) >= ^min_books and
+                coalesce(avg(r.rating), 0) >= ^min_avg_rating and
+                coalesce(sum(s.total_sales), 0) >= ^min_total_sales,
         order_by: [{:asc, ^sort_field}],
         select: %{
           author: a,
@@ -416,11 +418,11 @@ defmodule CrudApp.Library do
       )
 
     query =
-    if name_filter do
-      from(a in query, where: ilike(a.name, ^"%#{name_filter}%"))
-    else
-      query
-    end
+      if name_filter do
+        from(a in query, where: ilike(a.name, ^"%#{name_filter}%"))
+      else
+        query
+      end
 
     Repo.all(query)
   end

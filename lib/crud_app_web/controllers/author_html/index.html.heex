@@ -10,6 +10,8 @@
 <form method="get" action={~p"/authors"}>
   <input type="text" name="name_filter" placeholder="Filter by name" value={@name_filter}>
   <input type="number" name="min_books" placeholder="Min Books" value={@min_books}>
+  <input type="number" name="min_avg_rating" step="0.01" placeholder="Min Average Rating" value={@min_avg_rating}>
+  <input type="number" name="min_total_sales" placeholder="Min Total Sales" value={@min_total_sales}>
   <button type="submit">Filter</button>
 </form>
 
@@ -24,7 +26,7 @@
   </:col>
   <:col :let={author_stat} label="Average Rating">
     <.link href={~p"/authors?sort=avg_rating"}></.link>
-    <%= author_stat.avg_rating %>
+    <%= Decimal.round(author_stat.avg_rating, 2) %>
   </:col>
   <:col :let={author_stat} label="Total Sales">
     <.link href={~p"/authors?sort=total_sales"}></.link>

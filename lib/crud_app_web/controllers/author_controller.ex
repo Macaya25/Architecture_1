@@ -4,13 +4,21 @@ defmodule CrudAppWeb.AuthorController do
   alias CrudApp.Library
   alias CrudApp.Library.Author
 
-   def index(conn, params) do
+  def index(conn, params) do
     sort = params["sort"] || "name"
     name_filter = params["name_filter"]
     min_books = params["min_books"] || "0"
+    min_avg_rating = params["min_avg_rating"] || "0.0"
+    min_total_sales = params["min_total_sales"] || "0"
 
-    authors_with_stats = Library.list_authors_with_stats(sort, name_filter, String.to_integer(min_books))
-    render(conn, "index.html", authors_with_stats: authors_with_stats, name_filter: name_filter, min_books: min_books)
+    authors_with_stats = Library.list_authors_with_stats(
+      sort,
+      name_filter,
+      String.to_integer(min_books),
+      Decimal.new(min_avg_rating),
+      String.to_integer(min_total_sales)
+    )
+    render(conn, "index.html", authors_with_stats: authors_with_stats, name_filter: name_filter, min_books: min_books, min_avg_rating: min_avg_rating, min_total_sales: min_total_sales)
   end
 
   def new(conn, _params) do
