@@ -390,7 +390,14 @@ defmodule CrudApp.Library do
     Sale.changeset(sale, attrs)
   end
 
-  def list_authors_with_stats(sort \\ "name", name_filter \\ nil, min_books \\ 0, min_avg_rating \\ Decimal.new("0.0"), min_total_sales \\ 0) do
+  def list_authors_with_stats(
+    sort \\ "name",
+    order \\ "asc",
+    name_filter \\ nil,
+    min_books \\ 0,
+    min_avg_rating \\ Decimal.new("0.0"),
+    min_total_sales \\ 0
+  ) do
     sort_field = case sort do
       "name" -> :name
       "books_published" -> :book_count
@@ -399,8 +406,14 @@ defmodule CrudApp.Library do
       _ -> :name
     end
 
+    order_direction =
+      case order do
+        "desc" -> :desc
+        _ -> :asc
+      end
+
     query =
-      from(a in Author,
+      from a in Author,
         left_join: b in assoc(a, :books),
         left_join: r in assoc(b, :reviews),
         left_join: s in assoc(b, :sales),
@@ -408,22 +421,32 @@ defmodule CrudApp.Library do
         having: count(b.id) >= ^min_books and
                 coalesce(avg(r.rating), 0) >= ^min_avg_rating and
                 coalesce(sum(s.total_sales), 0) >= ^min_total_sales,
-        order_by: [{:asc, ^sort_field}],
         select: %{
-          author: a,
+          author_id: a.id,
+          name: a.name,
           book_count: count(b.id),
           avg_rating: avg(r.rating),
           total_sales: sum(s.total_sales)
         }
-      )
 
     query =
       if name_filter do
-        from(a in query, where: ilike(a.name, ^"%#{name_filter}%"))
+        from a in query, where: ilike(a.name, ^"%#{name_filter}%")
       else
         query
       end
 
-    Repo.all(query)
+    sorted_query =
+      from q in subquery(query),
+        order_by: [{^order_direction, field(q, ^sort_field)}]
+
+    Repo.all(sorted_query)
+  end
+
+  defp order_by_clause(_sort_field, _order_direction, "id") do
+    [asc: :id]
+  end
+  defp order_by_clause(sort_field, order_direction, _order) do
+    [{order_direction, sort_field}]
   end
 end

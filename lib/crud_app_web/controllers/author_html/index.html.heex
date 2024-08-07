@@ -16,30 +16,26 @@
 </form>
 
 <.table id="authors" rows={@authors_with_stats}>
-  <:col :let={author_stat} label="Name">
-    <.link href={~p"/authors?sort=name"}></.link>
-    <%= author_stat.author.name %>
+  <:col :let={author_stat} label={link_with_order("Name", "name", @sort, @order)}>
+    <%= author_stat.name %>
   </:col>
-  <:col :let={author_stat} label="Books Published">
-    <.link href={~p"/authors?sort=books_published"}></.link>
+  <:col :let={author_stat} label={link_with_order("Books Published", "books_published", @sort, @order)}>
     <%= author_stat.book_count %>
   </:col>
-  <:col :let={author_stat} label="Average Rating">
-    <.link href={~p"/authors?sort=avg_rating"}></.link>
+  <:col :let={author_stat} label={link_with_order("Average Rating", "avg_rating", @sort, @order)}>
     <%= Decimal.round(author_stat.avg_rating, 2) %>
   </:col>
-  <:col :let={author_stat} label="Total Sales">
-    <.link href={~p"/authors?sort=total_sales"}></.link>
+  <:col :let={author_stat} label={link_with_order("Total Sales", "total_sales", @sort, @order)}>
     <%= author_stat.total_sales %>
   </:col>
   <:action :let={author_stat}>
     <div class="sr-only">
-      <.link navigate={~p"/authors/#{author_stat.author.id}"}>Show</.link>
+      <.link navigate={~p"/authors/#{author_stat.author_id}"}>Show</.link>
     </div>
-    <.link navigate={~p"/authors/#{author_stat.author.id}/edit"}>Edit</.link>
+    <.link navigate={~p"/authors/#{author_stat.author_id}/edit"}>Edit</.link>
   </:action>
   <:action :let={author_stat}>
-    <.link href={~p"/authors/#{author_stat.author.id}"} method="delete" data-confirm="Are you sure?">
+    <.link href={~p"/authors/#{author_stat.author_id}"} method="delete" data-confirm="Are you sure?">
       Delete
     </.link>
   </:action>
