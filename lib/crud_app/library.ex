@@ -449,4 +449,65 @@ defmodule CrudApp.Library do
   defp order_by_clause(sort_field, order_direction, _order) do
     [{order_direction, sort_field}]
   end
+
+  def get_top_books_with_reviews(limit \\ 10) do
+    from(b in Book,
+      left_join: r in assoc(b, :reviews),
+      group_by: b.id,
+      order_by: [desc: avg(r.rating)],
+      limit: ^limit,
+      select: %{
+        book: b,
+        avg_rating: avg(r.rating),
+        best_review: max(r.rating),
+        worst_review: min(r.rating)
+      }
+    )
+    |> Repo.all()
+    |> Enum.map(&load_reviews(&1))
+  end
+
+  defp load_reviews(book_stat) do
+    reviews =
+      from(r in Review,
+        where: r.book_id == ^book_stat.book.id,
+        order_by: [desc: r.rating],
+        limit: 1
+      )
+      |> Repo.all()
+
+    best_review = Enum.at(reviews, 0)
+    worst_review = Enum.at(reviews, -1)
+
+    Map.put(book_stat, :best_review, best_review)
+    |> Map.put(:worst_review, worst_review)
+  end
+
+  def get_top_selling_books(limit \\ 50) do
+    query =
+      from b in Book,
+        join: a in assoc(b, :author),
+        left_join: s in assoc(b, :sales),
+        left_join: sales_by_author in subquery(author_sales_query()),
+        on: sales_by_author.author_id == a.id,
+        group_by: [b.id, a.id, sales_by_author.total_sales],
+        order_by: [desc: sum(s.total_sales)],
+        limit: ^limit,
+        select: %{
+          book: b,
+          total_sales: sum(s.total_sales),
+          author: a,
+          author_total_sales: sales_by_author.total_sales,
+          top_5_in_publication_year: fragment("? IN (SELECT bs.book_id FROM (SELECT b.id AS book_id, RANK() OVER (PARTITION BY extract(year from b.date_of_publication) ORDER BY sum(s.total_sales) DESC) AS sales_rank FROM books b JOIN sales s ON s.book_id = b.id WHERE extract(year from b.date_of_publication) = extract(year from ?) GROUP BY b.id) bs WHERE bs.sales_rank <= 5)", b.id, b.date_of_publication)
+        }
+
+    Repo.all(query)
+  end
+
+  defp author_sales_query do
+    from b in Book,
+      join: s in assoc(b, :sales),
+      group_by: b.author_id,
+      select: %{author_id: b.author_id, total_sales: sum(s.total_sales)}
+  end
 end

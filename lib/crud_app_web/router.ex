@@ -23,6 +23,9 @@ defmodule CrudAppWeb.Router do
     resources "/books", BookController
     resources "/reviews", ReviewController
     resources "/sales", SaleController
+
+    get "/top10", BookController, :top10
+    get "/top50", BookController, :top50
   end
 
   # Other scopes may use custom stacks.

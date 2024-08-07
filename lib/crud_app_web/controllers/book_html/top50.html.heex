@@ -1,0 +1,18 @@
+<h1>Top 50 Best Selling Books</h1>
+<.table id="top-books" rows={@top_books}>
+  <:col :let={book_stat} label="Title">
+    <%= book_stat.book.name %>
+  </:col>
+  <:col :let={book_stat} label="Total Sales">
+    <%= book_stat.total_sales %>
+  </:col>
+  <:col :let={book_stat} label="Author">
+    <%= book_stat.author.name %>
+  </:col>
+  <:col :let={book_stat} label="Author Total Sales">
+    <%= book_stat.author_total_sales %>
+  </:col>
+  <:col :let={book_stat} label="Top 5 in Publication Year">
+    <%= if book_stat.top_5_in_publication_year, do: "Yes", else: "No" %>
+  </:col>
+</.table>

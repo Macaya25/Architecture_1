@@ -1,0 +1,25 @@
+<h1>Top 10 Books</h1>
+<.table id="top-books" rows={@top_books}>
+  <:col :let={book_stat} label="Title">
+    <%= book_stat.book.name %>
+  </:col>
+  <:col :let={book_stat} label="Average Rating">
+    <%= Decimal.round(book_stat.avg_rating, 2) %>
+  </:col>
+  <:col :let={book_stat} label="Best Review">
+    <%= if book_stat.best_review do %>
+      <p><strong>Rating:</strong> <%= book_stat.best_review.rating %></p>
+      <p><%= book_stat.best_review.review %></p>
+    <% else %>
+      <p>No reviews</p>
+    <% end %>
+  </:col>
+  <:col :let={book_stat} label="Worst Review">
+    <%= if book_stat.worst_review do %>
+      <p><strong>Rating:</strong> <%= book_stat.worst_review.rating %></p>
+      <p><%= book_stat.worst_review.review %></p>
+    <% else %>
+      <p>No reviews</p>
+    <% end %>
+  </:col>
+</.table>

@@ -59,4 +59,14 @@ defmodule CrudAppWeb.BookController do
     |> put_flash(:info, "Book deleted successfully.")
     |> redirect(to: ~p"/books")
   end
+
+  def top10(conn, _params) do
+    top_books = Library.get_top_books_with_reviews(10)
+    render(conn, "top10.html", top_books: top_books)
+  end
+
+  def top50(conn, _params) do
+    top_books = Library.get_top_selling_books(50)
+    render(conn, "top50.html", top_books: top_books)
+  end
 end
