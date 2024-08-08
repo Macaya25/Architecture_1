@@ -3,6 +3,7 @@ defmodule CrudAppWeb.ReviewController do
 
   alias CrudApp.Library
   alias CrudApp.Library.Review
+  alias CrudApp.Repo
 
   def index(conn, _params) do
     reviews = Library.list_reviews()
@@ -27,7 +28,7 @@ defmodule CrudAppWeb.ReviewController do
   end
 
   def show(conn, %{"id" => id}) do
-    review = Library.get_review!(id)
+    review = Repo.get!(Review, id) |> Repo.preload(:book)
     render(conn, :show, review: review)
   end
 

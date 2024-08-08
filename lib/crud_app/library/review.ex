@@ -18,4 +18,5 @@ defmodule CrudApp.Library.Review do
     |> cast(attrs, [:review, :rating, :upvotes, :book_id])
     |> validate_required([:review, :rating, :upvotes, :book_id])
   end
+
 end

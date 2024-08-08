@@ -9,6 +9,9 @@
 </.header>
 
 <.list>
+  <:item title="Book name">
+    <%= if Ecto.assoc_loaded?(@review.book), do: @review.book.name, else: "Book not loaded" %>
+  </:item>
   <:item title="Review"><%= @review.review %></:item>
   <:item title="Rating"><%= @review.rating %></:item>
   <:item title="Upvotes"><%= @review.upvotes %></:item>
