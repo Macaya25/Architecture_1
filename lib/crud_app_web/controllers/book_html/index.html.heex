@@ -7,6 +7,13 @@
   </:actions>
 </.header>
 
+<form method="get" action={~p"/books"}>
+  <input type="text" name="name_filter" placeholder="Filter by name or description" value={@name_filter}>
+  <button type="submit">Filter</button>
+</form>
+
+
+
 <.table id="books" rows={@books} row_click={&JS.navigate(~p"/books/#{&1}")}>
   <:col :let={book} label="Name"><%= book.name %></:col>
   <:col :let={book} label="Summary"><%= book.summary %></:col>

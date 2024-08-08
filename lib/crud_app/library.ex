@@ -450,6 +450,38 @@ defmodule CrudApp.Library do
     [{order_direction, sort_field}]
   end
 
+  def list_books_with_filters(sort \\ "name", order \\ "asc", name_filter \\ nil, min_number_of_sales \\ 0, start_date \\ ~D[0000-01-01], end_date \\ Date.utc_today()) do
+    Book
+    |> filter_by_name_and_summary(name_filter)
+    |> filter_by_min_number_of_sales(min_number_of_sales)
+    |> filter_by_date_range(start_date, end_date)
+    |> order_books(sort, order)
+    |> Repo.all()
+  end
+
+  defp filter_by_name_and_summary(query, nil), do: query
+  defp filter_by_name_and_summary(query, name_filter) do
+    from b in query, where: ilike(b.name, ^"%#{name_filter}%") or ilike(b.summary, ^"%#{name_filter}%")
+  end
+
+
+  defp filter_by_min_number_of_sales(query, min_number_of_sales) do
+    from b in query, where: b.number_of_sales >= ^min_number_of_sales
+  end
+
+  defp filter_by_date_range(query, start_date, end_date) do
+    from b in query, where: b.date_of_publication >= ^start_date and b.date_of_publication <= ^end_date
+  end
+
+  defp order_books(query, sort, order) do
+    sort_atom = String.to_atom(sort)
+    order_atom = String.to_atom(order)
+
+    from b in query, order_by: [{^order_atom, field(b, ^sort_atom)}]
+  end
+
+
+
   def get_top_books_with_reviews(limit \\ 10) do
     from(b in Book,
       left_join: r in assoc(b, :reviews),

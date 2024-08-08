@@ -4,9 +4,32 @@ defmodule CrudAppWeb.BookController do
   alias CrudApp.Library
   alias CrudApp.Library.Book
 
-  def index(conn, _params) do
-    books = Library.list_books()
-    render(conn, :index, books: books)
+  def index(conn, params) do
+    sort = params["sort"] || "name"
+    order = params["order"] || "asc"
+    name_filter = params["name_filter"]
+    min_number_of_sales = params["min_number_of_sales"] || "0"
+    start_date = params["start_date"] || "0000-01-01"
+    end_date = params["end_date"] || Date.to_string(Date.utc_today())
+
+    books_with_filters = Library.list_books_with_filters(
+      sort,
+      order,
+      name_filter,
+      String.to_integer(min_number_of_sales),
+      Date.from_iso8601!(start_date),
+      Date.from_iso8601!(end_date)
+    )
+
+    render(conn, "index.html",
+      books: books_with_filters,
+      name_filter: name_filter,
+      min_number_of_sales: min_number_of_sales,
+      start_date: start_date,
+      end_date: end_date,
+      sort: sort,
+      order: order
+    )
   end
 
   def new(conn, _params) do
