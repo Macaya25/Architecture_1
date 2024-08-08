@@ -1,36 +1,75 @@
+import Ecto.Query
+
 defmodule CrudAppWeb.BookController do
   use CrudAppWeb, :controller
 
   alias CrudApp.Library
   alias CrudApp.Library.Book
+  alias CrudApp.Repo
 
-  def index(conn, params) do
-    sort = params["sort"] || "name"
-    order = params["order"] || "asc"
-    name_filter = params["name_filter"]
-    min_number_of_sales = params["min_number_of_sales"] || "0"
-    start_date = params["start_date"] || "0000-01-01"
-    end_date = params["end_date"] || Date.to_string(Date.utc_today())
 
-    books_with_filters = Library.list_books_with_filters(
-      sort,
-      order,
-      name_filter,
-      String.to_integer(min_number_of_sales),
-      Date.from_iso8601!(start_date),
-      Date.from_iso8601!(end_date)
-    )
+  def index(conn, %{"page" => page_param, "page_size" => page_size_param, "name_filter" => name_filter_param}) do
+    page =
+      case Integer.parse(page_param) do
+        {int, _} when int > 0 -> int
+        _ -> 1
+      end
 
-    render(conn, "index.html",
-      books: books_with_filters,
-      name_filter: name_filter,
-      min_number_of_sales: min_number_of_sales,
-      start_date: start_date,
-      end_date: end_date,
-      sort: sort,
-      order: order
-    )
+    page_size =
+      case Integer.parse(page_size_param) do
+        {int, _} when int > 0 -> int
+        _ -> 10
+      end
+
+    # Fetch books with the name filter
+    books = get_books(page, page_size, name_filter_param)
+
+    # Calculate the next page number
+    next_page = page + 1
+
+    # Fetch books for the next page with the same filter
+    next_page_books = get_books(next_page, page_size, name_filter_param)
+
+    # Determine if there are elements on the next page
+    has_next_page = length(next_page_books) > 0
+
+    render(conn, "index.html", books: books, page: page, page_size: page_size, has_next_page: has_next_page, name_filter: name_filter_param)
   end
+
+  def index(conn, %{"name_filter" => name_filter_param}) do
+    # Default values when no page or page_size parameters are provided
+    page = 1
+    page_size = 10
+
+    # Fetch books with the name filter
+    books = get_books(page, page_size, name_filter_param)
+
+    # Calculate the next page number
+    next_page = page + 1
+
+    # Fetch books for the next page with the same filter
+    next_page_books = get_books(next_page, page_size, name_filter_param)
+
+    # Determine if there are elements on the next page
+    has_next_page = length(next_page_books) > 0
+
+    render(conn, "index.html", books: books, page: page, page_size: page_size, has_next_page: has_next_page, name_filter: name_filter_param)
+  end
+
+  defp get_books(page, page_size, name_filter) do
+    offset = (page - 1) * page_size
+
+    query =
+      from b in Book,
+        where: ilike(b.name, ^"%#{name_filter}%") or ilike(b.summary, ^"%#{name_filter}%"),
+        limit: ^page_size,
+        offset: ^offset
+
+    Repo.all(query)
+  end
+
+
+
 
   def new(conn, _params) do
     changeset = Library.change_book(%Book{})

@@ -12,8 +12,6 @@
   <button type="submit">Search</button>
 </form>
 
-
-
 <.table id="books" rows={@books} row_click={&JS.navigate(~p"/books/#{&1}")}>
   <:col :let={book} label="Name"><%= book.name %></:col>
   <:col :let={book} label="Summary"><%= book.summary %></:col>
@@ -31,3 +29,17 @@
     </.link>
   </:action>
 </.table>
+
+<div class="pagination">
+  <%= if @page > 1 do %>
+    <.link href={~p"/books?page=#{@page - 1}&page_size=#{@page_size}&name_filter=#{@name_filter}"}>Previous</.link>
+  <% else %>
+    <span class="disabled">Previous</span>
+  <% end %>
+
+  <%= if @has_next_page do %>
+    <.link href={~p"/books?page=#{@page + 1}&page_size=#{@page_size}&name_filter=#{@name_filter}"}>Next</.link>
+  <% else %>
+    <span class="disabled">Next</span>
+  <% end %>
+</div>
