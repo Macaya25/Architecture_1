@@ -69,8 +69,6 @@ defmodule CrudAppWeb.BookController do
   end
 
 
-
-
   def new(conn, _params) do
     changeset = Library.change_book(%Book{})
     render(conn, :new, changeset: changeset)
