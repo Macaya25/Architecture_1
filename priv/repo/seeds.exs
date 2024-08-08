@@ -9,6 +9,7 @@
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
+import Ecto.Query
 
 Faker.start()
 
@@ -24,6 +25,7 @@ excluded_fields = [:__meta__, :__struct__, :id, :books, :author, :reviews, :sale
 
 current_time = DateTime.utc_now() |> DateTime.truncate(:second)
 
+# Insert Authors
 authors = for _ <- 1..50 do
   %Author{}
   |> Author.changeset(%{
@@ -43,13 +45,13 @@ Repo.insert_all(Author, authors)
 
 authors = Repo.all(Author)
 
+# Insert Books
 books = for author <- authors, _ <- 1..6 do
   %Book{}
   |> Book.changeset(%{
     name: Faker.Lorem.sentence(),
     summary: Faker.Lorem.paragraphs(1..3) |> Enum.join(" "),
     date_of_publication: Faker.Date.backward(1000),
-    number_of_sales: Enum.random(0..10000),
     author_id: author.id
   })
   |> Ecto.Changeset.apply_changes()
@@ -63,6 +65,7 @@ Repo.insert_all(Book, books)
 
 books = Repo.all(Book)
 
+# Insert Reviews
 for book <- books do
   reviews = for _ <- 1..10 do
     %Review{}
@@ -81,6 +84,7 @@ for book <- books do
   Repo.insert_all(Review, reviews)
 end
 
+# Insert Sales and Update Number of Sales
 for book <- books do
   sales = for year <- (Date.utc_today().year - 5)..Date.utc_today().year do
     %Sale{}
@@ -96,4 +100,15 @@ for book <- books do
     |> Map.put(:updated_at, current_time)
   end
   Repo.insert_all(Sale, sales)
+
+  # Calculate total sales for the book
+  total_sales_query = from s in Sale,
+    where: s.book_id == ^book.id,
+    select: sum(s.total_sales)
+
+  total_sales = Repo.one(total_sales_query) || 0
+
+  # Update the number_of_sales field in the Book
+  book_changeset = Book.update_sales_changeset(book, %{number_of_sales: total_sales})
+  Repo.update!(book_changeset)
 end

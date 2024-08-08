@@ -8,6 +8,9 @@
 </.header>
 
 <.table id="sales" rows={@sales} row_click={&JS.navigate(~p"/sales/#{&1}")}>
+  <:col :let={sale} label="Book Name">
+    <%= if Ecto.assoc_loaded?(sale.book), do: sale.book.name, else: "Book not loaded" %>
+  </:col>
   <:col :let={sale} label="Year"><%= sale.year %></:col>
   <:col :let={sale} label="Total sales"><%= sale.total_sales %></:col>
   <:action :let={sale}>

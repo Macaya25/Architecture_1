@@ -21,4 +21,13 @@ defmodule CrudApp.Library.Book do
     |> cast(attrs, [:name, :summary, :date_of_publication, :number_of_sales, :author_id])
     |> validate_required([:name, :summary, :date_of_publication, :number_of_sales, :author_id])
   end
+
+  @doc """
+  Creates a changeset for updating the number of sales.
+  """
+  def update_sales_changeset(book, attrs) do
+    book
+    |> cast(attrs, [:number_of_sales])
+    |> validate_number(:number_of_sales, greater_than_or_equal_to: 0)
+  end
 end

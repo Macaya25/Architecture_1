@@ -1,3 +1,5 @@
+import Ecto.Query
+
 defmodule CrudAppWeb.SaleController do
   use CrudAppWeb, :controller
 
@@ -6,8 +8,11 @@ defmodule CrudAppWeb.SaleController do
   alias CrudApp.Repo
 
   def index(conn, _params) do
-    sales = Library.list_sales()
-    render(conn, :index, sales: sales)
+    sales = Repo.all(
+      from s in Sale,
+      preload: [:book]  # Preload book association
+    )
+    render(conn, "index.html", sales: sales)
   end
 
   def new(conn, _params) do
