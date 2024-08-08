@@ -7,6 +7,14 @@
   </:actions>
 </.header>
 
+<form method="get" action={~p"/authors"}>
+  <input type="text" name="name_filter" placeholder="Filter by name" value={@name_filter}>
+  <input type="number" name="min_books" placeholder="Min Books" value={@min_books}>
+  <input type="number" name="min_avg_rating" step="0.01" placeholder="Min Average Rating" value={@min_avg_rating}>
+  <input type="number" name="min_total_sales" placeholder="Min Total Sales" value={@min_total_sales}>
+  <button type="submit">Filter</button>
+</form>
+
 <.table id="authors" rows={@authors_with_stats}>
   <:col :let={author_stat} label={link_with_order("Name", "name", @sort, @order)}>
     <%= author_stat.name %>
