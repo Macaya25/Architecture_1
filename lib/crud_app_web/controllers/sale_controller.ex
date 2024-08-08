@@ -3,6 +3,7 @@ defmodule CrudAppWeb.SaleController do
 
   alias CrudApp.Library
   alias CrudApp.Library.Sale
+  alias CrudApp.Repo
 
   def index(conn, _params) do
     sales = Library.list_sales()
@@ -27,7 +28,7 @@ defmodule CrudAppWeb.SaleController do
   end
 
   def show(conn, %{"id" => id}) do
-    sale = Library.get_sale!(id)
+    sale = Repo.get!(Sale, id) |> Repo.preload(:book)
     render(conn, :show, sale: sale)
   end
 

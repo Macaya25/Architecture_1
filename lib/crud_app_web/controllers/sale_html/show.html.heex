@@ -9,6 +9,9 @@
 </.header>
 
 <.list>
+  <:item title="Book name">
+    <%= if Ecto.assoc_loaded?(@sale.book), do: @sale.book.name, else: "Book not loaded" %>
+  </:item>
   <:item title="Year"><%= @sale.year %></:item>
   <:item title="Total sales"><%= @sale.total_sales %></:item>
 </.list>
