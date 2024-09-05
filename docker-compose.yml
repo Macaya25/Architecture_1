@@ -1,57 +1,49 @@
 version: '3.8'
 
 services:
-  app:
+  phoenix:
     build: .
     ports:
       - "4000:4000"
     depends_on:
-      - db
+      - postgres
     environment:
       MIX_ENV: dev
     command: ["mix", "phx.server"]
-
-  db:
+  
+  postgres:
     image: postgres
     restart: always
     ports:
       - 5432:5432
     environment:
-      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: your_app_prod
     volumes:
-      - db_data:/var/lib/postgresql/data
-    networks:
-      - app_network
+      - db_data:/var/lib/mysql
 
-  phoenix:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      MIX_ENV: prod
-      DATABASE_URL: postgres://postgres:postgres@postgres/your_app_prod
-    depends_on:
-      - postgres
-    networks:
-      - app_network
-    ports:
-      - "4000:4000"
+  # postgres:
+  #   image: postgres:13-alpine
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: your_app_prod
+  #   volumes:
+  #     - db_data:/var/lib/postgresql/data
+  #   networks:
+  #     - app_network
 
-  nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
-    depends_on:
-      - phoenix
-    volumes:
-      - static_files:/app/static
-    ports:
-      - "80:80"
-    networks:
-      - app_network
-
+  # nginx:
+  #   build:
+  #     context: ./nginx
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - phoenix
+  #   volumes:
+  #     - static_files:/app/static
+  #   ports:
+  #     - "80:80"
+  #   networks:
+  #     - app_network
 volumes:
   db_data:
   static_files:

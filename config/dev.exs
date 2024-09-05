@@ -4,7 +4,7 @@ import Config
 config :crud_app, CrudApp.Repo,
   username: "postgres",
   password: "postgres",
-  hostname: "db",
+  hostname: "postgres",
   database: "crud_app_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
