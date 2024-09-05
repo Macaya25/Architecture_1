@@ -1,8 +1,21 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:13-alpine
+  app:
+    build: .
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+    environment:
+      MIX_ENV: dev
+    command: ["mix", "phx.server"]
+
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
