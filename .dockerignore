@@ -1,1 +1,11 @@
 OpenSearch/
+.git
+.gitignore
+images
+nginx
+test
+*.md
+.env
+venv/
+env/
+visualize_data.py
