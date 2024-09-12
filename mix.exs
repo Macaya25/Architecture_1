@@ -60,6 +60,8 @@ defmodule CrudApp.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:faker, "~> 0.16", only: :dev},
+      {:redix, ">= 0.0.0"},
+      {:cachex, "~> 3.3"},
       {:scrivener_ecto, "~> 2.0"}
     ]
   end

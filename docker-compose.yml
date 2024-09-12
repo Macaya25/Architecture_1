@@ -7,10 +7,11 @@ services:
       - "4000:4000"
     depends_on:
       - postgres
+      - redis
     environment:
       MIX_ENV: dev
     command: ["mix", "phx.server"]
-  
+
   postgres:
     image: postgres
     restart: always
@@ -20,6 +21,20 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - db_data:/var/lib/mysql
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+    restart: always
+
+volumes:
+  db_data:
+  static_files:
+
+networks:
+  app_network:
+    driver: bridge
 
   # postgres:
   #   image: postgres:13-alpine
@@ -44,10 +59,3 @@ services:
   #     - "80:80"
   #   networks:
   #     - app_network
-volumes:
-  db_data:
-  static_files:
-
-networks:
-  app_network:
-    driver: bridge

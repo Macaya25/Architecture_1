@@ -1,6 +1,7 @@
 defmodule CrudApp.Library.Book do
   use Ecto.Schema
   import Ecto.Changeset
+  alias CrudApp.Cache
 
   schema "books" do
     field :date_of_publication, :date
@@ -29,5 +30,17 @@ defmodule CrudApp.Library.Book do
     book
     |> cast(attrs, [:number_of_sales])
     |> validate_number(:number_of_sales, greater_than_or_equal_to: 0)
+  end
+
+  # Hooks for cache purging
+  @after_insert :purge_cache
+  @after_update :purge_cache
+  @after_delete :purge_cache
+
+  defp purge_cache(book) do
+    Cachex.del(:cache, "book_#{book.id}")
+    Cachex.del(:cache, "author_#{book.author_id}_books")
+    Cachex.del(:cache, "top10_books")
+    Cachex.del(:cache, "top50_books")
   end
 end

@@ -61,6 +61,17 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Redis and Cachex configuration
+config :crud_app, :redix,
+  host: "localhost",
+  port: 6379
+
+config :cachex,
+  caches: [
+    # Cachex configuration for default cache
+    :cache
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

@@ -14,8 +14,10 @@ defmodule CrudApp.Application do
       {Phoenix.PubSub, name: CrudApp.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: CrudApp.Finch},
-      # Start a worker by calling: CrudApp.Worker.start_link(arg)
-      # {CrudApp.Worker, arg},
+      # Start Redix for Redis connection
+      {Redix, name: :redix, host: Application.get_env(:crud_app, :redix)[:host], port: Application.get_env(:crud_app, :redix)[:port]},
+      # Start Cachex for caching
+      {Cachex, name: :cache},
       # Start to serve requests, typically the last entry
       CrudAppWeb.Endpoint
     ]

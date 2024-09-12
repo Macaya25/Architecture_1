@@ -6,7 +6,7 @@ defmodule CrudAppWeb.BookController do
   alias CrudApp.Library
   alias CrudApp.Library.Book
   alias CrudApp.Repo
-
+  alias Cachex
 
   def index(conn, %{"page" => page_param, "page_size" => page_size_param, "name_filter" => name_filter_param}) do
     page =
@@ -21,8 +21,10 @@ defmodule CrudAppWeb.BookController do
         _ -> 10
       end
 
-    # Fetch books with the name filter
-    books = get_books(page, page_size, name_filter_param)
+    # Fetch books with cache for the name filter
+    books = Cachex.fetch!(:cache, "books_#{page}_#{name_filter_param}", fn ->
+      get_books(page, page_size, name_filter_param)
+    end)
 
     # Calculate the next page number
     next_page = page + 1
@@ -41,8 +43,10 @@ defmodule CrudAppWeb.BookController do
     page = 1
     page_size = 10
 
-    # Fetch books with the name filter
-    books = get_books(page, page_size, name_filter_param)
+    # Fetch books with cache for the name filter
+    books = Cachex.fetch!(:cache, "books_#{page}_#{name_filter_param}", fn ->
+      get_books(page, page_size, name_filter_param)
+    end)
 
     # Calculate the next page number
     next_page = page + 1
@@ -68,7 +72,6 @@ defmodule CrudAppWeb.BookController do
     Repo.all(query)
   end
 
-
   def new(conn, _params) do
     changeset = Library.change_book(%Book{})
     render(conn, :new, changeset: changeset)
@@ -77,6 +80,7 @@ defmodule CrudAppWeb.BookController do
   def create(conn, %{"book" => book_params}) do
     case Library.create_book(book_params) do
       {:ok, book} ->
+        Cachex.clear(:cache)  # Clear the cache when a new book is created
         conn
         |> put_flash(:info, "Book created successfully.")
         |> redirect(to: ~p"/books/#{book}")
@@ -87,7 +91,10 @@ defmodule CrudAppWeb.BookController do
   end
 
   def show(conn, %{"id" => id}) do
-    book = Library.get_book!(id)
+    book = Cachex.fetch!(:cache, "book_#{id}", fn ->
+      Library.get_book!(id)
+    end)
+
     render(conn, :show, book: book)
   end
 
@@ -102,6 +109,8 @@ defmodule CrudAppWeb.BookController do
 
     case Library.update_book(book, book_params) do
       {:ok, book} ->
+        Cachex.del(:cache, "book_#{id}")  # Invalidate the cache when a book is updated
+        Cachex.clear(:cache)  # Clear the entire cache if necessary
         conn
         |> put_flash(:info, "Book updated successfully.")
         |> redirect(to: ~p"/books/#{book}")
@@ -115,18 +124,27 @@ defmodule CrudAppWeb.BookController do
     book = Library.get_book!(id)
     {:ok, _book} = Library.delete_book(book)
 
+    Cachex.del(:cache, "book_#{id}")  # Invalidate the cache when a book is deleted
+    Cachex.clear(:cache)
+
     conn
     |> put_flash(:info, "Book deleted successfully.")
     |> redirect(to: ~p"/books")
   end
 
   def top10(conn, _params) do
-    top_books = Library.get_top_books_with_reviews(10)
+    top_books = Cachex.fetch!(:cache, "top10_books", fn ->
+      Library.get_top_books_with_reviews(10)
+    end)
+
     render(conn, "top10.html", top_books: top_books)
   end
 
   def top50(conn, _params) do
-    top_books = Library.get_top_selling_books(50)
+    top_books = Cachex.fetch!(:cache, "top50_books", fn ->
+      Library.get_top_selling_books(50)
+    end)
+
     render(conn, "top50.html", top_books: top_books)
   end
 end

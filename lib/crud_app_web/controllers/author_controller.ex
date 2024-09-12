@@ -3,6 +3,7 @@ defmodule CrudAppWeb.AuthorController do
 
   alias CrudApp.Library
   alias CrudApp.Library.Author
+  alias Cachex
 
   def index(conn, params) do
     sort = params["sort"] || "name"
@@ -12,22 +13,24 @@ defmodule CrudAppWeb.AuthorController do
     min_avg_rating = params["min_avg_rating"] || "0.0"
     min_total_sales = params["min_total_sales"] || "0"
 
-    authors_with_stats = Library.list_authors_with_stats(
-      sort,
-      order,
-      name_filter,
-      String.to_integer(min_books),
-      Decimal.new(min_avg_rating),
-      String.to_integer(min_total_sales)
-    )
+    authors_with_stats = Cachex.fetch!(:cache, "authors_#{sort}_#{order}_#{name_filter}", fn ->
+      Library.list_authors_with_stats(
+        sort,
+        order,
+        name_filter,
+        String.to_integer(min_books),
+        Decimal.new(min_avg_rating),
+        String.to_integer(min_total_sales)
+      )
+    end)
 
-    render(conn, "index.html", 
-      authors_with_stats: authors_with_stats, 
-      name_filter: name_filter, 
-      min_books: min_books, 
-      min_avg_rating: min_avg_rating, 
-      min_total_sales: min_total_sales, 
-      sort: sort, 
+    render(conn, "index.html",
+      authors_with_stats: authors_with_stats,
+      name_filter: name_filter,
+      min_books: min_books,
+      min_avg_rating: min_avg_rating,
+      min_total_sales: min_total_sales,
+      sort: sort,
       order: order
     )
   end
@@ -40,6 +43,7 @@ defmodule CrudAppWeb.AuthorController do
   def create(conn, %{"author" => author_params}) do
     case Library.create_author(author_params) do
       {:ok, author} ->
+        Cachex.clear(:cache)  # Clear the cache when a new author is created
         conn
         |> put_flash(:info, "Author created successfully.")
         |> redirect(to: ~p"/authors/#{author}")
@@ -50,7 +54,10 @@ defmodule CrudAppWeb.AuthorController do
   end
 
   def show(conn, %{"id" => id}) do
-    author = Library.get_author!(id)
+    author = Cachex.fetch!(:cache, "author_#{id}", fn ->
+      Library.get_author!(id)
+    end)
+
     render(conn, :show, author: author)
   end
 
@@ -65,6 +72,8 @@ defmodule CrudAppWeb.AuthorController do
 
     case Library.update_author(author, author_params) do
       {:ok, author} ->
+        Cachex.del(:cache, "author_#{id}")  # Invalidate the cache when an author is updated
+        Cachex.clear(:cache)  # Optionally clear the cache
         conn
         |> put_flash(:info, "Author updated successfully.")
         |> redirect(to: ~p"/authors/#{author}")
@@ -77,6 +86,9 @@ defmodule CrudAppWeb.AuthorController do
   def delete(conn, %{"id" => id}) do
     author = Library.get_author!(id)
     {:ok, _author} = Library.delete_author(author)
+
+    Cachex.del(:cache, "author_#{id}")  # Invalidate the cache when an author is deleted
+    Cachex.clear(:cache)
 
     conn
     |> put_flash(:info, "Author deleted successfully.")
